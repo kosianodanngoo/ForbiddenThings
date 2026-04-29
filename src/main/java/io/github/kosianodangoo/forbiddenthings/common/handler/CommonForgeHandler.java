@@ -10,7 +10,7 @@ import io.github.kosianodangoo.forbiddenthings.common.network.clientbound.Client
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -51,7 +51,7 @@ public class CommonForgeHandler {
     }
 
     @SubscribeEvent
-    public static void onServerStarting(ServerStartingEvent event) {
+    public static void onServerWillStart(ServerAboutToStartEvent event) {
         ForceKillHelper.initServer();
         InvincibleHelper.initServer();
     }

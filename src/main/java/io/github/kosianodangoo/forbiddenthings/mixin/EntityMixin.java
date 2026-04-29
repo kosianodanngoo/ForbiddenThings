@@ -27,7 +27,7 @@ public class EntityMixin {
         }
     }
 
-    @Inject(method = "load", at = @At("HEAD"))
+    @Inject(method = "load", at = @At("RETURN"))
     public void loadMixin(CompoundTag compoundTag, CallbackInfo ci) {
         try {
             Entity entity = (Entity) (Object) this;
