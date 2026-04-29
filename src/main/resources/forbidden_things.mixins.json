@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "io.github.kosianodangoo.forbiddenthings.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "forbidden_things.refmap.json",
+  "mixins": [
+    "EntityMixin",
+    "ServerLevelMixin"
+  ],
+  "client": [
+    "client.ClientPacketListnerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  },
+  "plugin": "io.github.kosianodangoo.forbiddenthings.ForbiddenMixinPlugin"
+}
