@@ -94,7 +94,7 @@ public class ForceKillHelper {
 
     public static boolean isForceKilled(Entity entity) {
         if (entity.level().isClientSide) {
-            return CLIENT_FORCE_KILLED.contains(entity);
+            return CLIENT_FORCE_KILLED.contains(entity.getUUID());
         }
         return FORCE_KILLED.contains(entity.getUUID());
     }

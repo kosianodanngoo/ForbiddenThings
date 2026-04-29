@@ -1,6 +1,7 @@
 package io.github.kosianodangoo.forbiddenthings.common.handler;
 
 import io.github.kosianodangoo.forbiddenthings.ForbiddenThings;
+import io.github.kosianodangoo.forbiddenthings.common.helper.EntityHelper;
 import io.github.kosianodangoo.forbiddenthings.common.helper.EventHelper;
 import io.github.kosianodangoo.forbiddenthings.common.helper.ForceKillHelper;
 import io.github.kosianodangoo.forbiddenthings.common.helper.InvincibleHelper;
@@ -29,7 +30,7 @@ public class CommonForgeHandler {
 
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
     public static void deathEnforcer(LivingDeathEvent deathEvent) {
-        if (!deathEvent.isCanceled()) {
+        if (!deathEvent.isCanceled() || EntityHelper.isInvincible(deathEvent.getEntity())) {
             return;
         }
         try {
@@ -37,6 +38,13 @@ public class CommonForgeHandler {
                 EventHelper.forceSetCanceled(deathEvent, false);
             }
         } catch (Throwable ignored) {
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void cancelDeath(LivingDeathEvent deathEvent) {
+        if (EntityHelper.isInvincible(deathEvent.getEntity())) {
+            EventHelper.forceSetCanceled(deathEvent, true);
         }
     }
 

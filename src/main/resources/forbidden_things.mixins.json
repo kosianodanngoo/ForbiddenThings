@@ -6,10 +6,12 @@
   "refmap": "forbidden_things.refmap.json",
   "mixins": [
     "EntityMixin",
+    "LivingEntityMixin",
     "ServerLevelMixin"
   ],
   "client": [
-    "client.ClientPacketListnerMixin"
+    "client.ClientPacketListnerMixin",
+    "client.MinecraftMixin"
   ],
   "injectors": {
     "defaultRequire": 1
