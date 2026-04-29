@@ -1,6 +1,8 @@
 package io.github.kosianodangoo.forbiddenthings.transformer;
 
 import io.github.kosianodangoo.forbiddenthings.ForbiddenThings;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -18,6 +20,8 @@ public class GenericTransformer {
     public static List<String> exclusiveInstructionWrappingPackages = new ArrayList<>();
     static boolean initialized = false;
     static boolean tickInjected = false;
+    static final String ONLYIN_DESC = Type.getDescriptor(OnlyIn.class);
+    static final String FML_DIST = FMLEnvironment.dist.toString();
     static boolean availableGetBytecode = false;
     public static boolean breakMyReference = false;
 
@@ -167,7 +171,6 @@ public class GenericTransformer {
                         if (value instanceof Type type && type.getInternalName().startsWith("io/github/kosianodangoo/forbiddenthings")) {
                             ldcInsn.cst = Type.getType(Objects.class);
                             modified = true;
-                            break breakLdc;
                         }
                     }
                 }
@@ -263,6 +266,11 @@ public class GenericTransformer {
             try (InputStream is = classLoader.getResourceAsStream(currentName.concat(".class"))) {
                 ClassReader classReader = new ClassReader(Objects.requireNonNull(is));
                 currentName = classReader.getSuperName();
+                ClassNode classNode = new ClassNode(Opcodes.ASM9);
+                classReader.accept(classNode, ClassReader.EXPAND_FRAMES);
+                if (classNode.visibleAnnotations != null && classNode.visibleAnnotations.stream().anyMatch(annotationNode -> annotationNode.desc.equals(ONLYIN_DESC) && !((String[]) annotationNode.values.get(annotationNode.values.indexOf("value") + 1))[1].equals(FML_DIST))) {
+                    return false;
+                }
                 if (currentName.equals(superClass)) {
                     return true;
                 }
