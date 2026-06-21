@@ -23,6 +23,7 @@ public class GenericTransformer {
     static final String ONLYIN_DESC = Type.getDescriptor(OnlyIn.class);
     static final String FML_DIST = FMLEnvironment.dist.toString();
     static boolean availableGetBytecode = false;
+    public static boolean availableClassFileTransformer = false;
     public static boolean breakMyReference = false;
 
     @SuppressWarnings("unused")

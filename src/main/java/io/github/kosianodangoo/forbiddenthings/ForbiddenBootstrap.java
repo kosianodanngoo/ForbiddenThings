@@ -10,6 +10,8 @@ import io.github.kosianodangoo.forbiddenthings.transformer.BytecodeGetterTransfo
 import io.github.kosianodangoo.forbiddenthings.common.helper.UnsafeHelper;
 import io.github.kosianodangoo.forbiddenthings.transformer.EntityMethods;
 import io.github.kosianodangoo.forbiddenthings.transformer.ForbiddenLaunchPlugin;
+import io.github.kosianodangoo.forbiddenthings.transformer.GenericClassFileTransformer;
+import io.github.kosianodangoo.forbiddenthings.transformer.GenericTransformer;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -57,6 +59,8 @@ public final class ForbiddenBootstrap {
                 if (!registerBridge()) return;
                 instrumentation.addTransformer(new BytecodeGetterTransformer(), true);
                 instrumentation.retransformClasses(ModuleClassLoader.class);
+                instrumentation.addTransformer(new GenericClassFileTransformer(), true);
+                GenericTransformer.availableClassFileTransformer = true;
             }
         } catch (Throwable t) {
             ForbiddenThings.LOGGER.error("ForbiddenBootstrap.start failed", t);
