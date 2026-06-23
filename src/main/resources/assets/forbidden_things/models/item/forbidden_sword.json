@@ -1,0 +1,16 @@
+{
+  "loader": "forbidden_things:forbidden_mask",
+  "glitch": true,
+  "shards": {
+    "count": 18,
+    "size": [ 0.04, 0.10 ],
+    "area": [ -0.2, 1.2 ],
+    "depth": [ 0.1, 0.9 ],
+    "seed": 12345,
+    "drift": 0.06
+  },
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "forbidden_things:item/forbidden_sword"
+  }
+}

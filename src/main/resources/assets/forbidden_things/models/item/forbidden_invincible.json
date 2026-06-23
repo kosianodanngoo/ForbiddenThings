@@ -1,0 +1,8 @@
+{
+  "loader": "forbidden_things:forbidden_mask",
+  "glitch": true,
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "forbidden_things:item/forbidden_invincible"
+  }
+}
