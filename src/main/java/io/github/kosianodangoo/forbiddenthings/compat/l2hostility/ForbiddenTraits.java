@@ -18,7 +18,7 @@ public class ForbiddenTraits {
         TRAITS = LHTraits.TRAITS;
 
         FORBIDDEN_ATTACK_TRAIT = L2Hostility.REGISTRATE.regTrait("forbidden_attack", ForbiddenAttackTrait::new, (ResourceLocation id) -> new TraitConfig(
-                        id, 50, 40, 1, 10)).desc("")
+                        id, 50, 1, 1, 100)).desc("")
                 .lang("forbidden_attack").register();
     }
 
