@@ -85,16 +85,25 @@ mixin {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-    flatDir() {
-        dirs 'libs'
-    }
-
     maven{
         url = "https://cursemaven.com"
     }
 
     maven {
         url = "https://maven.theillusivec4.top/"
+    }
+
+    ivy {
+        name = "L2Hostility-libs"
+        url = "https://raw.githubusercontent.com/Minecraft-LightLand/L2Hostility/main/libs/"
+        patternLayout {
+            artifact "[artifact]-[revision].jar"
+        }
+        metadataSources { artifact() }
+        content {
+            includeModule("dev.xkmc.l2damagetracker", "l2damagetracker")
+            includeModule("com.tterrag.registrate", "Registrate-MC1.20")
+        }
     }
 }
 
@@ -118,7 +127,6 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:l2library-620203:6806000")
     runtimeOnly fg.deobf("curse.maven:patchouli-306770:7731017")
     runtimeOnly fg.deobf("com.tterrag.registrate:Registrate-MC1.20:1.3.11")
-    compileOnly fg.deobf("dev.xkmc.l2damagetracker:l2damagetracker:0.4.3")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
