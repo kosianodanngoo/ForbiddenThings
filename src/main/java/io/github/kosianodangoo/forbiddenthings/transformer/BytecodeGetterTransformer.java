@@ -10,6 +10,7 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class BytecodeGetterTransformer implements ClassFileTransformer {
 
@@ -52,8 +53,8 @@ public class BytecodeGetterTransformer implements ClassFileTransformer {
                             if (insnNode instanceof MethodInsnNode methodInsn && methodInsn.name.equals("findFirst")) {
                                 InsnList insnList = new InsnList();
                                 insnList.add(new VarInsnNode(Opcodes.ALOAD, 3));
-                                insnList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "io/github/kosianodangoo/forbiddenthings/agent/BytecodeBridge", "transformOptionalBytes", "(Ljava/util/Optional;Ljava/lang/String;)Ljava/util/Optional;"));
-                                mn.instructions.insert(insnNode, insnList);
+                                insnList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "io/github/kosianodangoo/forbiddenthings/agent/BytecodeBridge", "transformStreamBytes", "(Ljava/util/stream/Stream;Ljava/lang/String;)Ljava/util/stream/Stream;"));
+                                mn.instructions.insertBefore(insnNode, insnList);
                                 mn.maxStack += 1;
                                 GenericTransformer.availableGetBytecode = true;
                                 break;
@@ -79,11 +80,24 @@ public class BytecodeGetterTransformer implements ClassFileTransformer {
         }
     }
 
+    public static Stream<byte[]> transformStreamBytes(Stream<byte[]> stream, String className) {
+        if (stream == null || GenericTransformer.exclusivePackages.stream().anyMatch(className::startsWith)) {
+            return stream;
+        }
+        return stream.map(bytes -> transformBytes(bytes, className));
+    }
+
     public static Optional<byte[]> transformOptionalBytes(Optional<byte[]> optionalBytes, String className) {
         if (optionalBytes.isEmpty() || GenericTransformer.exclusivePackages.stream().anyMatch(className::startsWith)) {
             return optionalBytes;
         }
-        byte[] bytes = optionalBytes.orElse(new byte[0]);
+        return Optional.of(transformBytes(optionalBytes.orElse(new byte[0]), className));
+    }
+
+    private static byte[] transformBytes(byte[] bytes, String className) {
+        if (bytes == null || bytes.length == 0) {
+            return bytes;
+        }
 
         ClassNode classNode;
         boolean modified;
@@ -93,25 +107,25 @@ public class BytecodeGetterTransformer implements ClassFileTransformer {
             classReader.accept(classNode, ClassReader.EXPAND_FRAMES);
             modified = GenericTransformer.transform(GenericTransformer.Phase.GetBytecode, classNode);
         } catch (Throwable t) {
-            ForbiddenThings.LOGGER.error("transformOptionalBytes: read/transform failed for {} ({}): {}",
+            ForbiddenThings.LOGGER.error("transformBytes: read/transform failed for {} ({}): {}",
                     className, t.getClass().getName(), t.getMessage(), t);
-            return optionalBytes;
+            return bytes;
         }
 
         if (!modified) {
-            return optionalBytes;
+            return bytes;
         }
 
         try {
             ClassWriter cw = new HierarchyAwareClassWriter(classNode, ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
             classNode.accept(cw);
             byte[] out = cw.toByteArray();
-            //ForbiddenThings.LOGGER.debug("transformOptionalBytes: wrote {} ({} -> {} bytes)", className, bytes.length, out.length);
-            return Optional.of(out);
+            //ForbiddenThings.LOGGER.debug("transformBytes: wrote {} ({} -> {} bytes)", className, bytes.length, out.length);
+            return out;
         } catch (Throwable t) {
-            ForbiddenThings.LOGGER.error("transformOptionalBytes: write failed for {} ({}): {} -- falling back to original bytes",
+            ForbiddenThings.LOGGER.error("transformBytes: write failed for {} ({}): {} -- falling back to original bytes",
                     className, t.getClass().getName(), t.getMessage(), t);
-            return optionalBytes;
+            return bytes;
         }
     }
 }

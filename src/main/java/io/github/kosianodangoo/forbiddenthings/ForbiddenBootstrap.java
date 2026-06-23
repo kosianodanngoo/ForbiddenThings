@@ -20,8 +20,8 @@ import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Field;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.stream.Stream;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -120,8 +120,8 @@ public final class ForbiddenBootstrap {
     private static boolean registerBridge() {
         try {
             Class<?> bridgeCls = Class.forName(BRIDGE_CLASS, true, ClassLoader.getSystemClassLoader());
-            Field f = bridgeCls.getField("transformer");
-            BiFunction<Optional<byte[]>, String, Optional<byte[]>> fn = BytecodeGetterTransformer::transformOptionalBytes;
+            Field f = bridgeCls.getField("streamTransformer");
+            BiFunction<Stream<byte[]>, String, Stream<byte[]>> fn = BytecodeGetterTransformer::transformStreamBytes;
             f.set(null, fn);
             return true;
         } catch (Throwable t) {
