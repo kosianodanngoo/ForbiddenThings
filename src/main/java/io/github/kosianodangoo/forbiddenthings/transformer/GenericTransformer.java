@@ -50,7 +50,7 @@ public class GenericTransformer {
         boolean modified = false;
 
         boolean shouldWrapInsn = ((availableGetBytecode && phase == Phase.GetBytecode) || (!availableGetBytecode && phase == Phase.ILaunchPluginServiceBefore)) && exclusiveInstructionWrappingPackages.stream().noneMatch(packageName -> classNode.name.startsWith(packageName));
-        boolean shouldModifyReturn = phase == Phase.ILaunchPluginService;
+        boolean shouldModifyReturn = (phase == Phase.ILaunchPluginService && !availableClassFileTransformer) || phase == Phase.ClassFileTransformer;
 
         for (MethodNode method : classNode.methods) {
             for (AbstractInsnNode insn : method.instructions) {
@@ -268,7 +268,7 @@ public class GenericTransformer {
                 ClassReader classReader = new ClassReader(Objects.requireNonNull(is));
                 currentName = classReader.getSuperName();
                 ClassNode classNode = new ClassNode(Opcodes.ASM9);
-                classReader.accept(classNode, ClassReader.EXPAND_FRAMES);
+                classReader.accept(classNode, ClassReader.SKIP_CODE);
                 if (classNode.visibleAnnotations != null && classNode.visibleAnnotations.stream().anyMatch(annotationNode -> annotationNode.desc.equals(ONLYIN_DESC) && !((String[]) annotationNode.values.get(annotationNode.values.indexOf("value") + 1))[1].equals(FML_DIST))) {
                     return false;
                 }
