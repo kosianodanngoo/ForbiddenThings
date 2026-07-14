@@ -1,6 +1,13 @@
 {
   "item.forbidden_things.forbidden_sword": "Forbidden Sword",
-  "item.forbidden_things.forbidden_invincible": "Forbidden Invincible",
+  "item.forbidden_things.forbidden_sword.remove.enabled": "Remove Mode: Enabled",
+  "item.forbidden_things.forbidden_sword.remove.disabled": "Remove Mode: Disabled",
 
-  "trait.l2hostility.forbidden_attack": "Forbidden Attack"
+  "item.forbidden_things.forbidden_invincible": "Forbidden Invincible",
+  "item.forbidden_things.forbidden_invincible.enabled": "Forbidden Invincible: Enabled",
+  "item.forbidden_things.forbidden_invincible.disabled": "Forbidden Invincible: Disabled",
+
+  "trait.l2hostility.forbidden_attack": "Forbidden Attack",
+
+  "itemGroup.tab.forbidden_things": "Forbidden Things"
 }
