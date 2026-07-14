@@ -1,6 +1,7 @@
 package io.github.kosianodangoo.forbiddenthings;
 
 import com.mojang.logging.LogUtils;
+import io.github.kosianodangoo.forbiddenthings.common.init.ForbiddenCreativeTabs;
 import io.github.kosianodangoo.forbiddenthings.common.init.ForbiddenItems;
 import io.github.kosianodangoo.forbiddenthings.common.network.ForbiddenNetwork;
 import io.github.kosianodangoo.forbiddenthings.compat.l2hostility.ForbiddenL2Hostility;
@@ -25,6 +26,7 @@ public class ForbiddenThings {
         ForbiddenNetwork.register();
 
         new ForbiddenItems().register(modBus);
+        new ForbiddenCreativeTabs().register(modBus);
 
         if (ModList.get().isLoaded("l2hostility")) {
             ForbiddenL2Hostility.register(context);

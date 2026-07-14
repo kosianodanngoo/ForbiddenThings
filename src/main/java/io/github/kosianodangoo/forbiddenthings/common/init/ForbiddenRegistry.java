@@ -1,4 +1,4 @@
-package io.github.kosianodangoo.forbiddenthings.api;
+package io.github.kosianodangoo.forbiddenthings.common.init;
 
 import io.github.kosianodangoo.forbiddenthings.ForbiddenThings;
 import net.minecraftforge.eventbus.api.IEventBus;
