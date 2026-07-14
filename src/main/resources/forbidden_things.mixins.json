@@ -6,7 +6,9 @@
   "refmap": "forbidden_things.refmap.json",
   "mixins": [
     "EntityMixin",
+    "ForgeHooksMixin",
     "LivingEntityMixin",
+    "PlayerListMixin",
     "ServerLevelMixin"
   ],
   "client": [

@@ -43,7 +43,7 @@ public class CommonForgeHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void cancelDeath(LivingDeathEvent deathEvent) {
-        if (EntityHelper.isInvincible(deathEvent.getEntity())) {
+        if (EntityHelper.isInvincible(deathEvent.getEntity()) && deathEvent.getEntity().isAlive()) {
             EventHelper.forceSetCanceled(deathEvent, true);
         }
     }
