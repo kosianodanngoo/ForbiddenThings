@@ -19,6 +19,7 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraftforge.entity.PartEntity;
 import net.minecraftforge.network.PacketDistributor;
 
 import java.util.HashSet;
@@ -37,6 +38,10 @@ public class ForceKillHelper {
 
     public static void forcekill(Entity entity) {
         if (entity.level().isClientSide) {
+            return;
+        }
+        if (entity instanceof PartEntity<?> partEntity) {
+            forcekill(partEntity.getParent());
             return;
         }
         addForceKilled(entity);
