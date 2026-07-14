@@ -110,7 +110,7 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    runtimeOnly fg.deobf("curse.maven:the-trial-monolith-1462850:8004607")
+    runtimeOnly fg.deobf("curse.maven:the-trial-monolith-1462850:8424931")
 
     compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:5.4.0+1.20.1:api")
     runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:5.4.0+1.20.1")
