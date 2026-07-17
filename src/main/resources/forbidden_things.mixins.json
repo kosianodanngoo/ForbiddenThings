@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "forbidden_things.refmap.json",
   "mixins": [
+    "EntityInvoker",
     "EntityMixin",
     "ForgeHooksMixin",
     "LivingEntityMixin",
