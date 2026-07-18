@@ -29,6 +29,14 @@ java {
     toolchain.languageVersion = JavaLanguageVersion.of(17)
 }
 
+// 外部モジュールアクセス拒否テスト用フラグ。`./gradlew accessDenialTest` 起動時、または明示的に
+// `-PftProbeSelftest` を付けたときだけ true。これが true のとき server run にプローブの自己終了フラグを渡す。
+def ftProbeSelfTest = project.hasProperty('ftProbeSelftest') ||
+        gradle.startParameter.taskNames.any { it == 'accessDenialTest' || it == ':accessDenialTest' }
+// プローブの検証結果ファイル。存在＝プローブが実際に走った証拠、内容(PASS/FAIL)＝合否。
+// これで「起動時クラッシュ(既知の間欠レース)＝ファイル無し」と「LEAK検出＝FAIL」を区別する。
+def ftProbeResultFile = layout.buildDirectory.file('ft-probe-result.txt').get().asFile
+
 minecraft {
     mappings channel: mapping_channel, version: mapping_version
 
@@ -51,6 +59,15 @@ minecraft {
                 "${mod_id}" {
                     source sourceSets.main
                 }
+                // 外部Mod役の検証用プローブ。独立したJPMSモジュールとして解決されるため、
+                // applyModuleSetting() のアクセス拒否が外部Modと同様に適用される。
+                // accessDenialTest 実行時（または -PftProbeSelftest 指定時）のみ読み込む。
+                // これを付けないと runClient など通常の run にもプローブが混入してしまう。
+                if (ftProbeSelfTest) {
+                    "ft_probe" {
+                        source sourceSets.test
+                    }
+                }
             }
         }
 
@@ -62,6 +79,13 @@ minecraft {
         server {
             property 'forge.enabledGameTestNamespaces', mod_id
             args '--nogui'
+            // accessDenialTest 実行時（または -PftProbeSelftest 指定時）のみ、プローブ(FtAccessProbe)へ
+            // 自己終了フラグと結果ファイルパスを渡す。プローブは FMLCommonSetup で検証し、結果ファイルへ
+            // PASS/FAIL を書いてから exit する。合否判定は終了コードではなく結果ファイルで行う（下の accessDenialTest）。
+            if (ftProbeSelfTest) {
+                property 'ft.probe.selftest', 'true'
+                property 'ft.probe.resultFile', ftProbeResultFile.absolutePath
+            }
         }
 
         gameTestServer {
@@ -83,6 +107,11 @@ mixin {
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+// 検証用プローブ(ft_probe, src/test)を Forge / 本体クラスに対してコンパイルできるようにする。
+// dev 実行時のモジュール分離は build.gradle の runs{ mods{} } が制御するため、ここでクラスパスを
+// 共有してもプローブは独立モジュール(ft_probe)として隔離対象になる。
+sourceSets.test.compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
 
 repositories {
     maven{
@@ -183,4 +212,32 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.withType(JavaExec).configureEach {
     standardInput = System.in
+}
+
+// 外部モジュールからのアクセス拒否を headless で検証するテストタスク。
+// server run を ft.probe.selftest 付きで起動し、プローブ(FtAccessProbe)が FMLCommonSetup で検証、
+// 結果ファイル(PASS/FAIL)を書いて自己終了する。合否は結果ファイルで判定する（終了コードは既知の
+// 起動時クラッシュとも1になり区別できないため）。
+if (ftProbeSelfTest) {
+    // このテスト起動時のみ runServer の挙動を調整（通常の runServer には影響しない）。
+    // runServer は ForgeGradle が projectsEvaluated で生成するため、遅延マッチで設定する。
+    tasks.matching { it.name == 'runServer' }.configureEach {
+        ignoreExitValue = true                       // プローブの exit や起動クラッシュ自体では失敗させず、結果ファイルで判定
+        doFirst { delete ftProbeResultFile }         // 前回結果を消し、走ったか否かを確実に判定
+    }
+}
+tasks.register('accessDenialTest') {
+    group = 'verification'
+    description = '外部モジュールからのアクセス拒否をheadlessで検証し、LEAK検出時にビルドを失敗させる'
+    dependsOn 'runServer'
+    doLast {
+        if (!ftProbeResultFile.exists()) {
+            throw new GradleException('プローブが結果を書く前に終了しました（既知の間欠的な起動時クラッシュの可能性）。再実行してください: ' + ftProbeResultFile)
+        }
+        def verdict = ftProbeResultFile.text.trim()
+        logger.lifecycle('[accessDenialTest] ' + verdict)
+        if (verdict.startsWith('FAIL')) {throw new GradleException('外部モジュールアクセス拒否テスト失敗（LEAK検出）: ' + verdict)
+        }
+        logger.lifecycle('[accessDenialTest] 外部モジュールアクセス拒否テスト成功（LEAKなし）')
+    }
 }
