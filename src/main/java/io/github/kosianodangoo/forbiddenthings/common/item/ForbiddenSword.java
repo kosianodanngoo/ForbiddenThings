@@ -73,7 +73,7 @@ public class ForbiddenSword extends SwordItem {
         target.hurt(target.level().damageSources().fellOutOfWorld(), Float.MAX_VALUE);
         ForceKillHelper.forcekill(target);
         if (shouldRemove(stack)) {
-            ForceRemoveHelper.tpRemove(target);
+            //ForceRemoveHelper.tpRemove(target);
             ForceRemoveHelper.removeFromMemory(target);
         }
     }
