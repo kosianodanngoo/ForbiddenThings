@@ -1,5 +1,6 @@
 package io.github.kosianodangoo.forbiddenthings.transformer;
 
+import io.github.kosianodangoo.forbiddenthings.ForbiddenEarlyConfig;
 import io.github.kosianodangoo.forbiddenthings.ForbiddenThings;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.loading.FMLEnvironment;
@@ -24,7 +25,8 @@ public class GenericTransformer {
     static final String FML_DIST = FMLEnvironment.dist.toString();
     static boolean availableGetBytecode = false;
     public static boolean availableClassFileTransformer = false;
-    public static boolean breakMyReference = false;
+    public static boolean breakMyReference = ForbiddenEarlyConfig.shouldBreakMyReference();
+    public static boolean breakStringReference = ForbiddenEarlyConfig.shouldBreakStringReference();
 
     @SuppressWarnings("unused")
     public enum Phase {
@@ -51,6 +53,7 @@ public class GenericTransformer {
 
         boolean shouldWrapInsn = ((availableGetBytecode && phase == Phase.GetBytecode) || (!availableGetBytecode && phase == Phase.ILaunchPluginServiceBefore)) && exclusiveInstructionWrappingPackages.stream().noneMatch(packageName -> classNode.name.startsWith(packageName));
         boolean shouldModifyReturn = (phase == Phase.ILaunchPluginService && !availableClassFileTransformer) || phase == Phase.ClassFileTransformer;
+        boolean shouldBreakReference = breakMyReference && shouldWrapInsn && !isReferenceMine(classNode.name);
 
         for (MethodNode method : classNode.methods) {
             for (AbstractInsnNode insn : method.instructions) {
@@ -160,17 +163,32 @@ public class GenericTransformer {
                         }
                     }
                 }
-                if (breakMyReference) {
+                breakRef:
+                if (shouldBreakReference) {
                     breakLdc:
                     if (insn instanceof LdcInsnNode ldcInsn) {
                         Object value = ldcInsn.cst;
-                        if (value instanceof String string && string.toLowerCase().replace(".", "/").contains("io/github/kosianodangoo/forbiddenthings")) {
+                        if (breakStringReference && value instanceof String string && isReferenceMine(string.toLowerCase().strip().replace(".", "/"))) {
                             ldcInsn.cst = String.valueOf(classNode.hashCode());
                             modified = true;
                             break breakLdc;
                         }
-                        if (value instanceof Type type && type.getInternalName().startsWith("io/github/kosianodangoo/forbiddenthings")) {
+                        if (value instanceof Type type && isReferenceMine(type.getInternalName())) {
                             ldcInsn.cst = Type.getType(Objects.class);
+                            modified = true;
+                        }
+                        break breakRef;
+                    }
+                    if (insn instanceof MethodInsnNode methodInsn) {
+                        if (isReferenceMine(methodInsn.owner)) {
+                            methodInsn.owner = String.valueOf(classNode.hashCode());
+                            modified = true;
+                        }
+                        break breakRef;
+                    }
+                    if (insn instanceof FieldInsnNode fieldInsn) {
+                        if (isReferenceMine(fieldInsn.owner)) {
+                            fieldInsn.owner = String.valueOf(classNode.hashCode());
                             modified = true;
                         }
                     }
@@ -218,6 +236,10 @@ public class GenericTransformer {
             }
         }
         return modified;
+    }
+
+    public static boolean isReferenceMine(String string) {
+        return string.startsWith("io/github/kosianodangoo/forbiddenthings");
     }
 
     public static void injectHead(MethodNode method, MethodInsnNode judgeMethod, MethodInsnNode replaceMethod, InsnNode returnInsn) {

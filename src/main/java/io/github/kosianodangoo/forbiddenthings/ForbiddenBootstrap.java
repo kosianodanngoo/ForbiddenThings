@@ -6,26 +6,26 @@ import cpw.mods.modlauncher.LaunchPluginHandler;
 import cpw.mods.modlauncher.Launcher;
 import cpw.mods.modlauncher.serviceapi.ILaunchPluginService;
 import io.github.kosianodangoo.forbiddenthings.agent.ForbiddenAgent;
-import io.github.kosianodangoo.forbiddenthings.transformer.BytecodeGetterTransformer;
-import io.github.kosianodangoo.forbiddenthings.common.helper.UnsafeHelper;
-import io.github.kosianodangoo.forbiddenthings.transformer.EntityMethods;
-import io.github.kosianodangoo.forbiddenthings.transformer.ForbiddenLaunchPlugin;
-import io.github.kosianodangoo.forbiddenthings.transformer.GenericClassFileTransformer;
-import io.github.kosianodangoo.forbiddenthings.transformer.GenericTransformer;
+import io.github.kosianodangoo.forbiddenthings.common.helper.*;
+import io.github.kosianodangoo.forbiddenthings.transformer.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
+import java.lang.module.ModuleDescriptor;
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.stream.Stream;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.stream.Stream;
 
 public final class ForbiddenBootstrap {
     private static final String AGENT_CLASS = "io.github.kosianodangoo.forbiddenthings.agent.ForbiddenAgent";
@@ -37,6 +37,10 @@ public final class ForbiddenBootstrap {
     public static volatile boolean LAUNCH_PLUGIN_AVAILABLE = false;
     private static volatile boolean STARTED = false;
 
+    private static final Set<Class<?>> denyClasses = Set.of(
+            UnsafeHelper.class, ForceKillHelper.class, ForceRemoveHelper.class, InvincibleHelper.class, EntityHelper.class
+    );
+
     private ForbiddenBootstrap() {}
 
     public static void start() {
@@ -45,6 +49,8 @@ public final class ForbiddenBootstrap {
             if (STARTED) return;
             STARTED = true;
         }
+        UnsafeHelper.denyReflection(denyClasses);
+        applyModuleSetting();
         EntityMethods.class.getClass();
         try {
             ForbiddenThings.LOGGER.debug("Initialize Start");
@@ -64,6 +70,52 @@ public final class ForbiddenBootstrap {
             }
         } catch (Throwable t) {
             ForbiddenThings.LOGGER.error("ForbiddenBootstrap.start failed", t);
+        }
+    }
+
+    private static void applyModuleSetting() {
+        System.out.println(ForbiddenBootstrap.class.getModule());
+        Module module = ForbiddenBootstrap.class.getModule();
+        Set<String> modules = Set.of("com.google.errorprone.annotations",
+                "com.google.gson",
+                "cpw.mods.modlauncher",
+                "cpw.mods.securejarhandler",
+                "fmlcore",
+                "fmlloader",
+                "forge",
+                "java.instrument",
+                "java.logging",
+                "javafmllanguage",
+                "jdk.attach",
+                "jdk.unsupported",
+                "jsr305",
+                "l2damagetracker",
+                "logging",
+                "mergetool",
+                "net.minecraftforge.eventbus",
+                "org.jetbrains.annotations",
+                "org.objectweb.asm",
+                "org.objectweb.asm.tree",
+                "org.objectweb.asm.tree.analysis",
+                "org.slf4j",
+                "org.spongepowered.mixin"
+        );
+        ModuleLayer layer = module.getLayer();
+        try {
+            UnsafeHelper.putBoolean(module.getDescriptor(), UnsafeHelper.getFieldOffset(ModuleDescriptor.class.getDeclaredField("automatic")), false);
+        } catch (Throwable igonred) {
+        }
+        List<Module> targetModules = modules.stream()
+                .map(target -> layer.findModule(target)
+                        .or(() -> ModuleLayer.boot().findModule(target)))
+                .flatMap(Optional::stream)
+                .toList();
+
+        Set<String> packages = module.getPackages();
+        for (String pn : packages) {
+            for (Module targetModule : targetModules) {
+                module.addExports(pn, targetModule);
+            }
         }
     }
 
