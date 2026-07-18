@@ -1,5 +1,6 @@
 package io.github.kosianodangoo.forbiddenthings.mixin;
 
+import io.github.kosianodangoo.forbiddenthings.common.helper.EntityHelper;
 import io.github.kosianodangoo.forbiddenthings.common.helper.ForceKillHelper;
 import io.github.kosianodangoo.forbiddenthings.common.helper.InvincibleHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -17,10 +18,10 @@ public class EntityMixin {
     public void saveWithoutIdMixin(CompoundTag compoundTag, CallbackInfoReturnable<CompoundTag> cir) {
         try {
             Entity entity = (Entity) (Object) this;
-            if (InvincibleHelper.isInvincible(entity)) {
+            if (EntityHelper.isInvincible(entity)) {
                 compoundTag.putBoolean("forbidden_things:invincible", true);
             }
-            if (ForceKillHelper.isForceKilled(entity)) {
+            if (EntityHelper.isForceDead(entity)) {
                 compoundTag.putBoolean("forbidden_things:force_killed", true);
             }
         } catch (Throwable ignored) {

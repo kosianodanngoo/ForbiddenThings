@@ -1,6 +1,6 @@
 package io.github.kosianodangoo.forbiddenthings.mixin;
 
-import io.github.kosianodangoo.forbiddenthings.common.helper.InvincibleHelper;
+import io.github.kosianodangoo.forbiddenthings.common.helper.EntityHelper;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.common.ForgeHooks;
@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class ForgeHooksMixin {
     @Inject(method = "onLivingDeath", at = @At("HEAD"), cancellable = true)
     private static void onLivingDeathMixin(LivingEntity entity, DamageSource src, CallbackInfoReturnable<Boolean> cir) {
-        if (InvincibleHelper.isInvincible(entity)) {
+        if (EntityHelper.isInvincible(entity)) {
             cir.setReturnValue(true);
             cir.cancel();
         }
@@ -21,7 +21,7 @@ public class ForgeHooksMixin {
 
     @Inject(method = "onLivingHurt", at = @At("HEAD"), cancellable = true)
     private static void onLivingHurtMixin(LivingEntity entity, DamageSource src, float amount, CallbackInfoReturnable<Float> cir) {
-        if (InvincibleHelper.isInvincible(entity)) {
+        if (EntityHelper.isInvincible(entity)) {
             cir.setReturnValue(0F);
             cir.cancel();
         }
@@ -29,7 +29,7 @@ public class ForgeHooksMixin {
 
     @Inject(method = "onLivingAttack", at = @At("HEAD"), cancellable = true)
     private static void onLivingAttackMixin(LivingEntity entity, DamageSource src, float amount, CallbackInfoReturnable<Boolean> cir) {
-        if (InvincibleHelper.isInvincible(entity)) {
+        if (EntityHelper.isInvincible(entity)) {
             cir.setReturnValue(false);
             cir.cancel();
         }

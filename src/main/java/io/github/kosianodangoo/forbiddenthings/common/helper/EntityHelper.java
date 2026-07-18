@@ -12,6 +12,10 @@ public class EntityHelper {
         return ForceKillHelper.isForceKilled(entity);
     }
 
+    public static boolean isRemoveBypass(Entity entity) {
+        return InvincibleHelper.isRemoveBypass(entity);
+    }
+
     public static boolean isForceRemove(Entity entity) {
         return false;
     }
