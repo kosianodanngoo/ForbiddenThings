@@ -21,6 +21,7 @@ public class UnsafeHelper {
     public static final Unsafe UNSAFE;
     public static final boolean AVAILABLE;
     public static final MethodHandles.Lookup IMPL_LOOKUP;
+    public static final Set<String> WILD_CARD = Set.of("*");
 
     public static final long OVERRIDE_OFFSET = 12;
     private static final Method GET_DECLARED_FIELDS0;
@@ -178,7 +179,7 @@ public class UnsafeHelper {
             Class<?> clazz = safeFindClass("jdk.internal.reflect.Reflection");
             Map<Class<?>, Set<String>> targetMap = new HashMap<>();
             for (Class<?> target : targets) {
-                targetMap.put(target, Set.of("*"));
+                targetMap.put(target, WILD_CARD);
             }
             VarHandle fieldVarHandle = safeFindStaticVarHandle(clazz, "fieldFilterMap", Map.class);
             Set<Map.Entry<Class<?>, Set<String>>> targetEntries = targetMap.entrySet();
