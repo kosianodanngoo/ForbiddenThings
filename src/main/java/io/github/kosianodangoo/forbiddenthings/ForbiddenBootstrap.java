@@ -38,7 +38,7 @@ public final class ForbiddenBootstrap {
     private static volatile boolean STARTED = false;
 
     private static final Set<Class<?>> denyClasses = Set.of(
-            UnsafeHelper.class, ForceKillHelper.class, ForceRemoveHelper.class, InvincibleHelper.class, EntityHelper.class
+            EntityMethods.class, UnsafeHelper.class, ForceKillHelper.class, ForceRemoveHelper.class, InvincibleHelper.class, EntityHelper.class
     );
 
     private ForbiddenBootstrap() {}
