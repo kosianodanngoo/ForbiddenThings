@@ -49,7 +49,9 @@ public final class ForbiddenBootstrap {
             if (STARTED) return;
             STARTED = true;
         }
-        UnsafeHelper.denyReflection(denyClasses);
+        if (ForbiddenEarlyConfig.shouldDenyReflection()) {
+            UnsafeHelper.denyReflection(denyClasses);
+        }
         applyModuleSetting();
         EntityMethods.class.getClass();
         try {
@@ -74,9 +76,16 @@ public final class ForbiddenBootstrap {
     }
 
     private static void applyModuleSetting() {
+        if (ForbiddenEarlyConfig.shouldCloseModule()) {
+            closeModule();
+        }
+    }
+
+    private static void closeModule() {
         System.out.println(ForbiddenBootstrap.class.getModule());
         Module module = ForbiddenBootstrap.class.getModule();
-        Set<String> modules = Set.of("com.google.errorprone.annotations",
+        Set<String> modules = Set.of(
+                "com.google.errorprone.annotations",
                 "com.google.gson",
                 "cpw.mods.modlauncher",
                 "cpw.mods.securejarhandler",
@@ -103,7 +112,7 @@ public final class ForbiddenBootstrap {
         ModuleLayer layer = module.getLayer();
         try {
             UnsafeHelper.putBoolean(module.getDescriptor(), UnsafeHelper.getFieldOffset(ModuleDescriptor.class.getDeclaredField("automatic")), false);
-        } catch (Throwable igonred) {
+        } catch (Throwable ignored) {
         }
         List<Module> targetModules = modules.stream()
                 .map(target -> layer.findModule(target)
