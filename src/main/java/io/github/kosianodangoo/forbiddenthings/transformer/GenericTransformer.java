@@ -1,5 +1,6 @@
 package io.github.kosianodangoo.forbiddenthings.transformer;
 
+import cpw.mods.modlauncher.serviceapi.ILaunchPluginService;
 import io.github.kosianodangoo.forbiddenthings.ForbiddenEarlyConfig;
 import io.github.kosianodangoo.forbiddenthings.ForbiddenThings;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -45,11 +46,13 @@ public class GenericTransformer {
         initialized = true;
     }
 
-    public static boolean transform(Phase phase, ClassNode classNode) {
+    public static int transform(Phase phase, ClassNode classNode) {
         //ForbiddenThings.LOGGER.debug("Transform: {}", classNode.name);
         if (exclusivePackages.stream().anyMatch(packageName -> classNode.name.startsWith(packageName)))
-            return false;
+            return 0;
         boolean modified = false;
+
+        boolean needsFrames = false;
 
         boolean shouldWrapInsn = ((availableGetBytecode && phase == Phase.GetBytecode) || (!availableGetBytecode && phase == Phase.ILaunchPluginServiceBefore)) && exclusiveInstructionWrappingPackages.stream().noneMatch(packageName -> classNode.name.startsWith(packageName));
         boolean shouldModifyReturn = (phase == Phase.ILaunchPluginService && !availableClassFileTransformer) || phase == Phase.ClassFileTransformer;
@@ -117,6 +120,7 @@ public class GenericTransformer {
                             method.instructions.insert(methodInsn, insnListA);
                             method.maxStack += 1;
                             modified = true;
+                            needsFrames = true;
                         }
                     }
                 } else if (shouldModifyReturn) {
@@ -235,7 +239,7 @@ public class GenericTransformer {
                 modified = true;
             }
         }
-        return modified;
+        return modified ? (needsFrames ? ILaunchPluginService.ComputeFlags.COMPUTE_FRAMES : ILaunchPluginService.ComputeFlags.SIMPLE_REWRITE) : 0;
     }
 
     public static boolean isReferenceMine(String string) {

@@ -27,7 +27,7 @@ public class GenericClassFileTransformer implements ClassFileTransformer {
             ClassReader classReader = new ClassReader(classfileBuffer);
             classNode = new ClassNode(Opcodes.ASM9);
             classReader.accept(classNode, ClassReader.EXPAND_FRAMES);
-            modified = GenericTransformer.transform(GenericTransformer.Phase.ClassFileTransformer, classNode);
+            modified = GenericTransformer.transform(GenericTransformer.Phase.ClassFileTransformer, classNode) != 0;
         } catch (Throwable t) {
             ForbiddenThings.LOGGER.error("GenericClassFileTransformer: read/transform failed for {} ({}): {}",
                     className, t.getClass().getName(), t.getMessage(), t);

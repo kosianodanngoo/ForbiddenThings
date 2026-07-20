@@ -105,7 +105,7 @@ public class BytecodeGetterTransformer implements ClassFileTransformer {
             ClassReader classReader = new ClassReader(bytes);
             classNode = new ClassNode(Opcodes.ASM9);
             classReader.accept(classNode, ClassReader.EXPAND_FRAMES);
-            modified = GenericTransformer.transform(GenericTransformer.Phase.GetBytecode, classNode);
+            modified = GenericTransformer.transform(GenericTransformer.Phase.GetBytecode, classNode) != 0;
         } catch (Throwable t) {
             ForbiddenThings.LOGGER.error("transformBytes: read/transform failed for {} ({}): {}",
                     className, t.getClass().getName(), t.getMessage(), t);

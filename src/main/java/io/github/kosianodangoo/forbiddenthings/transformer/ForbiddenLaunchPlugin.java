@@ -22,13 +22,10 @@ public class ForbiddenLaunchPlugin implements ILaunchPluginService {
     }
 
     @Override
-    public boolean processClass(Phase phase, ClassNode classNode, Type classType, String reason) {
-        if (classNode.name.startsWith("io/github/kosianodangoo/forbiddenthings/transformer"))
-            return false;
-        if (reason.equals(ITransformerActivity.CLASSLOADING_REASON)) {
-            return GenericTransformer.transform(phase == Phase.AFTER ? GenericTransformer.Phase.ILaunchPluginService : GenericTransformer.Phase.ILaunchPluginServiceBefore, classNode);
-        }
-        return false;
+    public int processClassWithFlags(Phase phase, ClassNode classNode, Type classType, String reason) {
+        if (classNode.name.startsWith("io/github/kosianodangoo/forbiddenthings/transformer") || !reason.equals(ITransformerActivity.CLASSLOADING_REASON))
+            return ComputeFlags.NO_REWRITE;
+        return GenericTransformer.transform(phase == Phase.AFTER ? GenericTransformer.Phase.ILaunchPluginService : GenericTransformer.Phase.ILaunchPluginServiceBefore, classNode);
     }
 
 }
